@@ -9,4 +9,5 @@ def Fetch_Data():
     data = response.json()
     return data
 
-print(Fetch_Data())
+if __name__ == "__main__":
+    print(Fetch_Data())
