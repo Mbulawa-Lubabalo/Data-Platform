@@ -1,15 +1,16 @@
 import unittest
 from unittest.mock import patch
-from extract import*
+from DataIngestion.extract import Fetch_Data
 
 
 class TestFetchedData(unittest.TestCase):
 
-    @patch("extract.requests.get")
+    @patch("DataIngestion.extract.requests.get")
     def test_fetch_data_success(self, mock_get):
         # Mock response object
         mock_response = mock_get.return_value
         mock_response.status_code = 200
+        mock_response.text = '{"SASTableData+P0142_7": [{"H01": "P0142.7"}]}'
         mock_response.json.return_value = {
             "SASJSONExport": "1.0 PRETTY",
             "SASTableData+P0142_7": [
@@ -30,7 +31,7 @@ class TestFetchedData(unittest.TestCase):
         self.assertTrue(len(result["SASTableData+P0142_7"]) > 0)
 
     
-    @patch("extract.requests.get")
+    @patch("DataIngestion.extract.requests.get")
     def test_fetch_data_http_error(self, mock_get):
         mock_get.return_value.raise_for_status.side_effect = Exception("HTTP Error")
 
