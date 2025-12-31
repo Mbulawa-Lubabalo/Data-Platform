@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+  data-ingestion:
+    build:
+      context: ./DataIngestion
+      dockerfile: Dockerfile
+    container_name: data-ingestion
+    volumes:
+      - ./DataIngestion:/app
+    command: python extract.py

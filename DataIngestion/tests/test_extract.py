@@ -1,11 +1,11 @@
 import unittest
 from unittest.mock import patch
-from DataIngestion.extract import Fetch_Data
+from extract import Fetch_Data
 
 
 class TestFetchedData(unittest.TestCase):
 
-    @patch("DataIngestion.extract.requests.get")
+    @patch("extract.requests.get")
     def test_fetch_data_success(self, mock_get):
         # Mock response object
         mock_response = mock_get.return_value
@@ -31,7 +31,7 @@ class TestFetchedData(unittest.TestCase):
         self.assertTrue(len(result["SASTableData+P0142_7"]) > 0)
 
     
-    @patch("DataIngestion.extract.requests.get")
+    @patch("extract.requests.get")
     def test_fetch_data_http_error(self, mock_get):
         mock_get.return_value.raise_for_status.side_effect = Exception("HTTP Error")
 
