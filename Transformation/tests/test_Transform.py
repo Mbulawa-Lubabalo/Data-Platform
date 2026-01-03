@@ -44,6 +44,26 @@ class TestTransform(unittest.TestCase):
         self.assertEqual(cleaned_df.loc[0, "2016-01"], 63.1)
         self.assertEqual(cleaned_df.loc[0, "2016-02"], 62.7)
 
+    
+    def test_null_monthly_values_filled_with_zero(self):
+        test_data = {
+            "SASTableData+P0142_7": [
+                {
+                    "H01": "P0142.7",
+                    "H02": "Export and Import Unit Value Indices",
+                    "MO012016": None,
+                    "MO022016": 62.7
+                }
+            ]
+        }
+
+        df = json_to_dataframe(test_data)
+        cleaned_df = clean_dataFrame(df)
+
+        self.assertEqual(cleaned_df.loc[0, "2016-01"], 0)
+        self.assertEqual(cleaned_df.loc[0, "2016-02"], 62.7)
+
+
 
 if __name__ == "__main__":
     unittest.main()

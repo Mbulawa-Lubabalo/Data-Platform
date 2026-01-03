@@ -19,8 +19,15 @@ def json_to_dataframe(json_Data: dict) -> pd.DataFrame:
     return df
 
 def clean_dataFrame(raw_df: pd.DataFrame) -> pd.DataFrame:
-    return raw_df.rename(columns=parse_month_columns)
+    df = raw_df.rename(columns=parse_month_columns)
+    month_cols = [
+        col for col in df.columns
+        if re.match(r"\d{4}-\d{2}", col)
+    ]
 
+    df[month_cols] = df[month_cols].fillna(0)
+
+    return df
 
 
 
