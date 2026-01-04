@@ -3,7 +3,7 @@ import pandas as pd
 from Transformation.Transform import (
     json_to_dataframe,
     clean_dataFrame,
-    parse_month_columns
+    normalize_column
 )
 
 class TestTransform(unittest.TestCase):
@@ -27,12 +27,12 @@ class TestTransform(unittest.TestCase):
         }
 
     def test_parse_month_columns(self):
-        self.assertEqual(parse_month_columns("MO012016"), "2016-01")
-        self.assertEqual(parse_month_columns("MO022016"), "2016-02")
-        self.assertEqual(parse_month_columns("H01"), "H01")
-        self.assertEqual(parse_month_columns("H03"), "id")
-        self.assertEqual(parse_month_columns("H04"), "type")
-        self.assertEqual(parse_month_columns("H05"), "product_name")
+        self.assertEqual(normalize_column("MO012016"), "2016-01")
+        self.assertEqual(normalize_column("MO022016"), "2016-02")
+        self.assertEqual(normalize_column("H01"), "H01")
+        self.assertEqual(normalize_column("H03"), "id")
+        self.assertEqual(normalize_column("H04"), "type")
+        self.assertEqual(normalize_column("H05"), "product_name")
 
     def test_json_to_dataframe(self):
         df = json_to_dataframe(self.sample_json)

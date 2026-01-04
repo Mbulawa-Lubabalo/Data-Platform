@@ -3,7 +3,7 @@ import re
 from DataIngestion.extract import Fetch_Data
 
 
-def parse_month_columns(col_name: str) -> str:
+def normalize_column(col_name: str) -> str:
     """
     Convert MO012016 → 2016-01
     """
@@ -29,7 +29,7 @@ def json_to_dataframe(json_Data: dict) -> pd.DataFrame:
     return df
 
 def clean_dataFrame(raw_df: pd.DataFrame) -> pd.DataFrame:
-    df = raw_df.rename(columns=parse_month_columns)
+    df = raw_df.rename(columns=normalize_column)
     month_cols = [
         col for col in df.columns
         if re.match(r"\d{4}-\d{2}", col)
