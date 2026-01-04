@@ -7,11 +7,21 @@ def parse_month_columns(col_name: str) -> str:
     """
     Convert MO012016 → 2016-01
     """
+
+    COLUMN_MAP = {
+        "H03": "id",
+        "H04": "type",
+        "H05": "product_name",
+    }
+
     match = re.match(r"MO(\d{2})(\d{4})", col_name)
     if match:
         month, year = match.groups()
         return f"{year}-{month}"
-    return col_name
+    else:
+        return COLUMN_MAP.get(col_name, col_name)
+
+    # return col_name
 
 def json_to_dataframe(json_Data: dict) -> pd.DataFrame:
     data = json_Data["SASTableData+P0142_7"]

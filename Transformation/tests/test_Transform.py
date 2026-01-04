@@ -14,6 +14,12 @@ class TestTransform(unittest.TestCase):
                 {
                     "H01": "P0142.7",
                     "H02": "Export and Import Unit Value Indices",
+                    "H03": "UVI43100",
+                    "H04": "Exports",
+                    "H05": "Coal",
+                    "H17": "Index",
+                    "H18": "December 2020 =100",
+                    "H25": "Monthly",
                     "MO012016": 63.1,
                     "MO022016": 62.7
                 }
@@ -24,6 +30,9 @@ class TestTransform(unittest.TestCase):
         self.assertEqual(parse_month_columns("MO012016"), "2016-01")
         self.assertEqual(parse_month_columns("MO022016"), "2016-02")
         self.assertEqual(parse_month_columns("H01"), "H01")
+        self.assertEqual(parse_month_columns("H03"), "id")
+        self.assertEqual(parse_month_columns("H04"), "type")
+        self.assertEqual(parse_month_columns("H05"), "product_name")
 
     def test_json_to_dataframe(self):
         df = json_to_dataframe(self.sample_json)
