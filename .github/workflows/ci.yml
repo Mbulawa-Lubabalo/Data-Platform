@@ -24,6 +24,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r DataIngestion/requirements.txt
         pip install -r Transformation/requirements.txt
+        pip install -r Database/requirements.txt
 
     - name: Run unit tests
       run: |
