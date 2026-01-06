@@ -9,9 +9,14 @@ def normalize_column(col_name: str) -> str:
     """
 
     COLUMN_MAP = {
-        "H03": "id",
-        "H04": "type",
-        "H05": "product_name",
+        "H01": "series_code",
+        "H02": "series_name",
+        "H03": "indicator_code",
+        "H04": "category",
+        "H05": "subcategory",
+        "H25": "frequency",
+        "H17": "unit",
+        "H18": "base_period"
     }
 
     match = re.match(r"MO(\d{2})(\d{4})", col_name)
@@ -39,6 +44,11 @@ def clean_dataFrame(raw_df: pd.DataFrame) -> pd.DataFrame:
 
     return df
 
+def Transformed_df():
+    json_data = Fetch_Data()
+    df = json_to_dataframe(json_data)
+    cleaned_df = clean_dataFrame(df)
+    return cleaned_df
 
 
 if __name__ == "__main__":
