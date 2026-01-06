@@ -29,10 +29,14 @@ class TestTransform(unittest.TestCase):
     def test_parse_month_columns(self):
         self.assertEqual(normalize_column("MO012016"), "2016-01")
         self.assertEqual(normalize_column("MO022016"), "2016-02")
-        self.assertEqual(normalize_column("H01"), "H01")
-        self.assertEqual(normalize_column("H03"), "id")
-        self.assertEqual(normalize_column("H04"), "type")
-        self.assertEqual(normalize_column("H05"), "product_name")
+        self.assertEqual(normalize_column("H01"), "series_code")
+        self.assertEqual(normalize_column("H02"), "series_name")
+        self.assertEqual(normalize_column("H03"), "indicator_code")
+        self.assertEqual(normalize_column("H04"), "category")
+        self.assertEqual(normalize_column("H05"), "subcategory")
+        self.assertEqual(normalize_column("H17"), "unit")
+        self.assertEqual(normalize_column("H18", "base_period"))
+        self.assertEqual(normalize_column("H25"), "frequency")
 
     def test_json_to_dataframe(self):
         df = json_to_dataframe(self.sample_json)

@@ -1,12 +1,10 @@
 import pandas as pd
-import re
 from DataIngestion.extract import Fetch_Data
+from datetime import date
 
 
-def normalize_column(col_name: str) -> str:
-    """
-    Convert MO012016 → 2016-01
-    """
+def transform_json_to_df(json_data: list[dict]) -> pd.DataFrame:
+    records = []
 
     COLUMN_MAP = {
         "H01": "series_code",
@@ -17,42 +15,37 @@ def normalize_column(col_name: str) -> str:
         "H25": "frequency",
         "H17": "unit",
         "H18": "base_period"
-    }
+        }
 
-    match = re.match(r"MO(\d{2})(\d{4})", col_name)
-    if match:
-        month, year = match.groups()
-        return f"{year}-{month}"
-    else:
-        return COLUMN_MAP.get(col_name, col_name)
+    for row in json_data:
+        base_fields = {
+            target_col: row.get(source_col)
+            for source_col, target_col in COLUMN_MAP.items()
+        }
 
-    # return col_name
+        for key, value in row.items():
+            if key.startswith("MO"):
+                month = int(key[2:4])
+                year = int(key[4:8])
 
-def json_to_dataframe(json_Data: dict) -> pd.DataFrame:
-    data = json_Data["SASTableData+P0142_7"]
-    df = pd.DataFrame(data)
-    return df
+                d = date(year, month, 1)
 
-def clean_dataFrame(raw_df: pd.DataFrame) -> pd.DataFrame:
-    df = raw_df.rename(columns=normalize_column)
-    month_cols = [
-        col for col in df.columns
-        if re.match(r"\d{4}-\d{2}", col)
-    ]
+                records.append({
+                    **base_fields,
+                    "date": d,
+                    "year": year,
+                    "quarter": (month - 1) // 3 + 1,
+                    "month": month,
+                    "month_name": d.strftime("%B"),
+                    "year_month": f"{year}-{month:02d}",
+                    "index_value": value
+                })
 
-    df[month_cols] = df[month_cols].fillna(0)
-
-    return df
-
-def Transformed_df():
-    json_data = Fetch_Data()
-    df = json_to_dataframe(json_data)
-    cleaned_df = clean_dataFrame(df)
-    return cleaned_df
+    return pd.DataFrame(records)
 
 
 if __name__ == "__main__":
     json_data = Fetch_Data()
-    df = json_to_dataframe(json_data)
-    cleaned_df = clean_dataFrame(df)
-    print(cleaned_df.head())
+    df = transform_json_to_df(json_data["SASTableData+P0142_7"])
+
+    print(df.head())
