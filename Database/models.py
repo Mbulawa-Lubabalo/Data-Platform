@@ -1,7 +1,8 @@
 from sqlalchemy import text
 from Database.connection import Database_Connection
 from DataIngestion.extract import Fetch_Data
-from Transformation.Transform import json_to_dataframe, clean_dataFrame, Transformed_df
+from Transformation.Transform import transform_json_to_df
+import pandas as pd
 
 
 def Create_Tables(engine):
@@ -113,12 +114,98 @@ def insert_dim_indicator(engine, df):
         conn.execute(sql, records)
 
 
+def insert_dim_date(engine, df):
+    date_df = (
+        df[[
+            "date",
+            "year",
+            "quarter",
+            "month",
+            "month_name",
+            "year_month"
+        ]]
+        .drop_duplicates()
+        .copy()
+    )
+
+    date_df["date"] = pd.to_datetime(date_df["date"])
+    date_df["date_key"] = date_df["date"].dt.strftime("%Y%m%d").astype(int)
+
+    sql = text("""
+        INSERT INTO public.dim_date (
+            date_key,
+            date,
+            year,
+            quarter,
+            month,
+            month_name,
+            year_month
+        )
+        VALUES (
+            :date_key,
+            :date,
+            :year,
+            :quarter,
+            :month,
+            :month_name,
+            :year_month
+        )
+        ON CONFLICT (date_key) DO NOTHING;
+    """)
+
+    with engine.begin() as conn:
+        conn.execute(sql, date_df.to_dict("records"))
+
+
+
+
+def insert_fact_index(engine, df):
+    fact_df = df.copy()
+    fact_df["date"] = pd.to_datetime(fact_df["date"])
+    fact_df["date_key"] = fact_df["date"].dt.strftime("%Y%m%d").astype(int)
+
+    sql = text("""
+        INSERT INTO public.fact_index (
+            indicator_key,
+            date_key,
+            index_value
+        )
+        SELECT
+            i.indicator_key,
+            :date_key,
+            :index_value
+        FROM public.dim_indicator i
+        WHERE i.indicator_code = :indicator_code
+        ON CONFLICT (indicator_key, date_key) DO NOTHING
+    """)
+
+    records = (
+        fact_df[[
+            "indicator_code",
+            "date_key",
+            "index_value"
+        ]]
+        .to_dict(orient="records")
+    )
+
+    with engine.begin() as conn:
+        conn.execute(sql, records)
+
+
 
 
 if __name__== "__main__":
     engine = Database_Connection()
-    df = Transformed_df()
+    json_data = Fetch_Data()
+    df = transform_json_to_df(json_data["SASTableData+P0142_7"])
 
     Create_Tables(engine)
+    print("Tables created")
     insert_dim_series(engine, df)
+    print("Inserted series")
     insert_dim_indicator(engine, df)
+    print("Inserted indicator")
+    insert_dim_date(engine, df)
+    print("Inserted date")
+    insert_fact_index(engine, df)
+    print("Inserted index")
