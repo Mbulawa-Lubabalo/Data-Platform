@@ -77,6 +77,32 @@ def Create_Tables(engine):
 
 
 def insert_dim_series(engine, df):
+    """
+    Insert unique series records into the dim_series dimension table.
+
+    This function extracts distinct series-level attributes from the
+    transformed DataFrame and inserts them into the `dim_series` table.
+    If a series with the same `series_code` already exists, the insert
+    is skipped using PostgreSQL's ON CONFLICT DO NOTHING logic.
+
+    The operation is performed as a bulk insert within a single
+    transaction for efficiency and consistency.
+    
+    :param engine: sqlalchemy.engine.Engine
+        An active SQLAlchemy engine connected to the target PostgreSQL
+        (Supabase) database.
+
+    :param df: pandas.DataFrame
+        A transformed DataFrame containing at least the following columns:
+        - series_code
+        - series_name
+        - frequency
+        - base_period
+
+    returns: None
+        
+    """
+
     sql = text("""
         INSERT INTO public.dim_series (series_code, series_name, frequency, base_period)
         SELECT DISTINCT
@@ -135,6 +161,35 @@ def insert_dim_indicator(engine, df):
 
 
 def insert_dim_date(engine, df):
+    """
+    Populate the dim_date date dimension table from a transformed DataFrame.
+
+    This function derives unique date records from the input DataFrame,
+    generates a surrogate `date_key` in YYYYMMDD format, and inserts the
+    resulting rows into the `dim_date` table. Duplicate dates are ignored
+    using PostgreSQL's ON CONFLICT DO NOTHING strategy.
+
+    The date dimension enables efficient time-based analysis in the
+    warehouse and supports tools such as Power BI for filtering and
+    aggregation by year, quarter, month, and calendar date.
+    
+    :param engine: sqlalchemy.engine.Engine
+        An active SQLAlchemy engine connected to the PostgreSQL
+        (Supabase) database.
+
+    :param df: pandas.DataFrame
+        A transformed DataFrame containing at least the following columns:
+        - date (datetime or string convertible to datetime)
+        - year
+        - quarter
+        - month
+        - month_name
+        - year_month
+
+    returns: None
+
+    """
+
     date_df = (
         df[[
             "date",
@@ -180,6 +235,36 @@ def insert_dim_date(engine, df):
 
 
 def insert_fact_index(engine, df):
+    """
+    Populate the fact_index table with index values at the indicator–date grain.
+
+    This function loads numeric index measurements into the `fact_index`
+    fact table. For each row in the input DataFrame, it:
+
+    - Derives a surrogate `date_key` (YYYYMMDD) from the `date` column
+    - Resolves the foreign key `indicator_key` by joining on
+      `dim_indicator.indicator_code`
+    - Inserts the (indicator_key, date_key, index_value) tuple into
+      the fact table
+
+    Duplicate fact rows are prevented using a composite primary key
+    (indicator_key, date_key) and PostgreSQL's ON CONFLICT DO NOTHING
+    clause, ensuring idempotent loads.
+    
+    :param engine: sqlalchemy.engine.Engine
+        An active SQLAlchemy engine connected to the PostgreSQL
+        (Supabase) data warehouse.
+
+    :param df: pandas.DataFrame
+        A transformed DataFrame containing at least:
+        - indicator_code : str
+        - date           : datetime or string convertible to datetime
+        - index_value    : numeric
+
+    returns: None
+
+    """
+
     fact_df = df.copy()
     fact_df["date"] = pd.to_datetime(fact_df["date"])
     fact_df["date_key"] = fact_df["date"].dt.strftime("%Y%m%d").astype(int)
