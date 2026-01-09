@@ -6,6 +6,26 @@ import pandas as pd
 
 
 def Create_Tables(engine):
+    """
+    Create the core data warehouse tables in the public schema.
+
+    This function creates the following tables if they do not already exist:
+    - dim_series: Stores high-level time series metadata.
+    - dim_indicator: Stores indicator-level metadata linked to a series.
+    - dim_date: Date dimension table used for time-based analysis.
+    - fact_index: Fact table storing index values by indicator and date.
+
+    The function executes all CREATE TABLE statements inside a single
+    database transaction to ensure atomicity.
+
+    
+    :param engine: sqlalchemy.engine.Engine
+        A SQLAlchemy Engine instance connected to the target PostgreSQL
+        (Supabase) database.
+
+    returns: None
+    """
+
     with engine.begin() as conn:
         conn.execute(
             text("""
